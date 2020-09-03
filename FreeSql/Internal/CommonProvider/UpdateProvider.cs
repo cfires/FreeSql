@@ -359,6 +359,8 @@ namespace FreeSql.Internal.CommonProvider
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
+                    if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                        col.SetValue(data, val = "");
                 }
             }
         }
@@ -379,6 +381,8 @@ namespace FreeSql.Internal.CommonProvider
                     if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                         changedDict.Add(col.Attribute.Name, true);
                 }
+                if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                    col.SetValue(data, val = "");
             }
         }
 
@@ -519,7 +523,12 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, expression?.Body, null, _params));
+        public IUpdate<T1> Where(Expression<Func<T1, bool>> exp) => WhereIf(true, exp);
+        public IUpdate<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
+        {
+            if (condition == false || exp == null) return this;
+            return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
+        }
         public IUpdate<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
